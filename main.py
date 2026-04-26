@@ -63,13 +63,24 @@
 
 # ...
 
+import os
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 
-TOKEN = "YOUR_BOT_TOKEN"  # replace or read from env
+# Load .env only if it exists (safe for local development)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not installed – assume env vars are set directly
 
-bot = Bot(token=TOKEN)
+# Get token from environment (Bothost injects it, or set locally in .env)
+BOT_TOKEN = os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN")
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN not set – please provide token in environment or .env file")
+
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 @dp.message(CommandStart())
@@ -77,6 +88,7 @@ async def start(message: types.Message):
     await message.answer("Bot is alive!")
 
 async def main():
+    print("🤖 Bot started. Waiting for messages...")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
