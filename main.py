@@ -10,7 +10,10 @@ if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN missing")
 
 DOMAIN = os.getenv("DOMAIN")
-WEBHOOK_URL = f"https://{DOMAIN}/webhook" if DOMAIN else None
+if not DOMAIN:
+    raise ValueError("DOMAIN environment variable not set")
+
+WEBHOOK_URL = f"https://{DOMAIN}/webhook"
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -22,9 +25,8 @@ async def start(message: types.Message):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await bot.delete_webhook(drop_pending_updates=True)
-    if WEBHOOK_URL:
-        await bot.set_webhook(url=WEBHOOK_URL)
-        print(f"✅ Webhook set to {WEBHOOK_URL}")
+    await bot.set_webhook(url=WEBHOOK_URL)
+    print(f"✅ Webhook set to {WEBHOOK_URL}")
     yield
     await bot.session.close()
 
