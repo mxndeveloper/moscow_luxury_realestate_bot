@@ -15,7 +15,9 @@ async def start(message: types.Message):
     await message.answer("Bot is alive!")
 
 async def main():
-    print("🤖 Bot started. Polling...")
+    # 🔥 DELETE THE WEBHOOK BEFORE POLLING
+    await bot.delete_webhook(drop_pending_updates=True)
+    print("✅ Webhook deleted, starting polling...")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
