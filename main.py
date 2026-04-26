@@ -43,7 +43,21 @@ async def telegram_webhook(request: Request):
     except Exception as e:
         logger.error(f"Error: {e}")
         return {"ok": False}
+    
+# Add this at the end of main.py
+async def main():
+    if WEBHOOK_URL and "localhost" not in WEBHOOK_URL and "ngrok" not in WEBHOOK_URL:
+        # Production: run webhook mode
+        import uvicorn
+        uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    else:
+        # Local development: use polling
+        print("🌱 Running in polling mode for local testing")
+        await bot.delete_webhook(drop_pending_updates=True)
+        await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import asyncio
+    asyncio.run(main())
+
+
