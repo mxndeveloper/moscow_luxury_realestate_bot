@@ -2,15 +2,16 @@ import os
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import CommandStart
+from aiogram import Bot, Dispatcher
 from aiogram.types import Update
+from bot.handlers.start import router as start_router
+from bot.handlers.language import router as language_router
+from bot.handlers.menu import router as menu_router
+from bot.middlewares.i18n import I18nMiddleware
 
-# ---------- Logging ----------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ---------- Configuration ----------
 BOT_TOKEN = os.getenv("BOT_TOKEN") or os.getenv("TELEGRAM_BOT_TOKEN")
 if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN missing")
@@ -24,30 +25,26 @@ WEBHOOK_URL = f"https://{DOMAIN}/webhook"
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# ---------- Bot handlers ----------
-@dp.message(CommandStart())
-async def start(message: types.Message):
-    await message.answer("Bot is alive!")
+dp.update.middleware(I18nMiddleware())
+dp.include_router(start_router)
+dp.include_router(language_router)
+dp.include_router(menu_router)
 
-# ---------- FastAPI lifespan (startup / shutdown) ----------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: set webhook
     logger.info("Deleting old webhook...")
     await bot.delete_webhook(drop_pending_updates=True)
     logger.info(f"Setting webhook to {WEBHOOK_URL}")
     await bot.set_webhook(url=WEBHOOK_URL)
-    logger.info("Webhook set successfully")
+    logger.info("Webhook set")
     yield
-    # Shutdown: clean up
     await bot.session.close()
 
 app = FastAPI(lifespan=lifespan)
 
-# ---------- HTTP endpoints ----------
 @app.get("/health")
 async def health_check():
-    return {"status": "ok", "message": "Service is healthy"}
+    return {"status": "ok"}
 
 @app.post("/webhook")
 async def telegram_webhook(request: Request):
