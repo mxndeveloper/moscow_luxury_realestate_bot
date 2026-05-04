@@ -1,4 +1,4 @@
-import os
+""" import os
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException
@@ -56,3 +56,31 @@ async def telegram_webhook(request: Request):
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         raise HTTPException(status_code=500, detail="Internal error")
+     """
+
+    ####
+
+import os
+from fastapi import FastAPI, Request
+from aiogram import Bot, types
+from aiogram.types import Update
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+DOMAIN = os.getenv("DOMAIN")
+bot = Bot(token=BOT_TOKEN)
+
+app = FastAPI()
+
+@app.post("/webhook")
+async def webhook(request: Request):
+    data = await request.json()
+    update = Update.model_validate(data)
+    if update.message and update.message.text == "/start":
+        await bot.send_message(update.message.chat.id, "Bot is alive!")
+    return {"ok": True}
+
+@app.get("/health")
+async def health():
+    return {"ok": True}
+
+    
