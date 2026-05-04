@@ -67,9 +67,18 @@ from aiogram.types import Update
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DOMAIN = os.getenv("DOMAIN")
-bot = Bot(token=BOT_TOKEN)
+if not DOMAIN:
+    raise ValueError("DOMAIN missing")
+WEBHOOK_URL = f"https://{DOMAIN}/webhook"
 
+bot = Bot(token=BOT_TOKEN)
 app = FastAPI()
+
+@app.on_event("startup")
+async def on_startup():
+    await bot.delete_webhook()
+    await bot.set_webhook(WEBHOOK_URL)
+    print(f"Webhook set to {WEBHOOK_URL}")
 
 @app.post("/webhook")
 async def webhook(request: Request):
@@ -81,6 +90,4 @@ async def webhook(request: Request):
 
 @app.get("/health")
 async def health():
-    return {"ok": True}
-
-    
+    return {"status": "ok"}
