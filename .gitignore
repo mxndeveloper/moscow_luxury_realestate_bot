@@ -6,7 +6,7 @@ __pycache__/
 
 test_ydb.py
 api-key.yaml
-polling_main.py
+
 minimal_webhook.py
 test_ydb_database.py
 ydb_wrapper.py
