@@ -1,19 +1,10 @@
-""" from aiogram import Router, types
+from aiogram import Router, types
 from aiogram.filters import CommandStart
+from keyboards import get_language_keyboard
 
 router = Router()
 
 @router.message(CommandStart())
 async def cmd_start(message: types.Message, _: dict):
-    await message.answer("👋 Welcome! Use /language to choose your language.") """
-
-...
-
-from aiogram import Router, types
-from aiogram.filters import CommandStart
-
-router = Router()
-
-@router.message(CommandStart())
-async def cmd_start(message: types.Message):
-    await message.answer("Bot is alive (direct)!")
+    await message.answer("👋 Добро пожаловать! Выберите язык / Choose language",
+                         reply_markup=get_language_keyboard())

@@ -1,8 +1,12 @@
 import os
 from fastapi import FastAPI, Request
-from aiogram import Bot, types
+from aiogram import Bot, Dispatcher
 from aiogram.types import Update
 from contextlib import asynccontextmanager
+from bot.handlers.start import router as start_router
+from bot.handlers.language import router as language_router
+from bot.handlers.menu import router as menu_router
+from bot.middlewares.i18n import I18nMiddleware
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DOMAIN = os.getenv("DOMAIN")
@@ -11,23 +15,29 @@ if not BOT_TOKEN or not DOMAIN:
 
 WEBHOOK_URL = f"https://{DOMAIN}/webhook"
 bot = Bot(token=BOT_TOKEN)
-app = FastAPI()   # <-- this is your `app` variable
+dp = Dispatcher()
+
+# Add middleware and routers
+dp.update.middleware(I18nMiddleware())
+dp.include_router(start_router)
+dp.include_router(language_router)
+dp.include_router(menu_router)
 
 @asynccontextmanager
-async def lifespan(app):
+async def lifespan(app: FastAPI):
     await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_webhook(WEBHOOK_URL)
     print(f"✅ Webhook set to {WEBHOOK_URL}")
     yield
     await bot.session.close()
-app.router.lifespan_context = lifespan
+
+app = FastAPI(lifespan=lifespan)
 
 @app.post("/webhook")
 async def webhook(request: Request):
     data = await request.json()
     update = Update.model_validate(data)
-    if update.message and update.message.text == "/start":
-        await bot.send_message(update.message.chat.id, "Bot is alive (webhook)!")
+    await dp.feed_update(bot, update)
     return {"ok": True}
 
 @app.get("/health")

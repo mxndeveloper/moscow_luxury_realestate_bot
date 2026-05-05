@@ -1,4 +1,3 @@
-# keyboards.py
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 def get_language_keyboard() -> InlineKeyboardMarkup:

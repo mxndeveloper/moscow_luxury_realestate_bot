@@ -16,7 +16,8 @@ async def set_language(callback: CallbackQuery):
     lang = callback.data.split("_")[1]
     user_lang[callback.from_user.id] = lang
     await callback.answer(f"Language set to {'English' if lang == 'en' else 'Русский'}")
-    await callback.message.answer("✅ Language saved! Now choose your role:", reply_markup=get_role_keyboard())
+    await callback.message.answer("✅ Language saved! Now choose your role:",
+                                  reply_markup=get_role_keyboard())
 
 @router.callback_query(F.data.startswith("role_"))
 async def set_role(callback: CallbackQuery):
