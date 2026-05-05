@@ -29,10 +29,13 @@ dp.include_router(menu_router)
 
 # ---------- Webhook Lifespan ----------
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app):
     await bot.delete_webhook(drop_pending_updates=True)
-    await bot.set_webhook(WEBHOOK_URL)
-    print(f"✅ Webhook set to {WEBHOOK_URL}")
+    try:
+        await bot.set_webhook(WEBHOOK_URL)
+        print(f"✅ Webhook set to {WEBHOOK_URL}")
+    except Exception as e:
+        print(f"❌ Webhook set failed: {e}")
     yield
     await bot.session.close()
 
